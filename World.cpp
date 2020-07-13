@@ -37,7 +37,7 @@ World::World() {
 	//std::cout << s2->b_material.m_color.m_r << ',' << s2->b_material.m_color.m_g << ',' << s2->b_material.m_color.m_b << '\n';
 	*/
 
-	///*	// Default world for PIT_9
+	///*	// Default world for PIT_9 test
 	m_light_source = Light(Point(-10, 10, -10), Color(1, 1, 1));
 	Plane* p1 = new Plane();
 	Plane* p2 = new Plane();
