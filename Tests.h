@@ -17,7 +17,7 @@ namespace rt {
 	public:
 
 		Tests();
-
+		/*
 		static void create_tuple();
 		static void test_point();
 		static void test_vector();
@@ -62,6 +62,10 @@ namespace rt {
 		static void pit9();
 		static void stripe_pattern();
 		static void lighting_pattern();
+		*/
+		//static void reflection();
+		static void reflux();
+
 	};
 }
 

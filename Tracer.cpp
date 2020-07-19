@@ -10,7 +10,6 @@ void Tracer::intersect_world(const World& w,const  Ray& ray) {
 	Ray ray2(ray.m_origin, ray.m_direction);					// Ray must be transformed by inverse of shape transform matrix.
 	for (int i = 0; i < w.m_objects.size(); i++) {
 		Ray r = Ray::transform(ray2, w.m_objects[i]->b_inv_tx);
-		//Ray r = Ray::transform(ray2, Matrix::inverse(w.m_objects[i]->b_transform));
 		w.m_objects[i]->intersection(r, this->ix_points, this->ix_shape_map);
 	}
 }
@@ -31,18 +30,15 @@ real Tracer::min_hit_point(std::vector<real>& ixs) {
 }
 
 void Tracer::prepare_computations( Ray& ray, World& w) {
-	sort_ix(this->ix_points);
-	this->m_hit3D = min_hit_point(this->ix_points);
-	if (this->m_hit3D == high_number) return;
+	sort_ix(this->ix_points);							// sort hit points.
+	this->m_hit3D = min_hit_point(this->ix_points);		// return minimum positive hitpoint
+	if (this->m_hit3D == high_number) return;			// if min+ hitpoint is high number there is no hit!
 	std::unordered_map<real, Shape*>::const_iterator mapper = ix_shape_map.find(this->m_hit3D);	// Stores object mapped to the hit location
 	this->s = mapper->second;															// according to hash map data structure.
 	Matrix transform(this->s->b_inv_tx);				// Get the transform matrix of hit object.
 	Vector eye = Vector::negate(ray.m_direction);		// Assigns eye vector the negative of ray direction.
-
 	Point hitpoint_3d(Ray::position(ray, this->m_hit3D));		// Computes 3D coordinate of hit point as hitPoint = ray.orig + ray.dir * hit_location.
-
 	s->normal_at(hitpoint_3d,this->s->b_inv_tx,this->normal);	// Normal at hitpoint after shape is transformed.
-	///*
 	if (Vector::dotProduct(normal, eye) < 0) {			// If normal and eye vector dot product is negative
 		ray.m_inside = true;								// then the "viewer" is inside the object.
 		normal = Vector::negate(normal);
@@ -50,7 +46,6 @@ void Tracer::prepare_computations( Ray& ray, World& w) {
 	else {
 		ray.m_inside = false;
 	}
-	//*/
 	Point over_point = Point::addPoints(hitpoint_3d,			// compensate for shadows computation.
 		Point::scalarMultiplication
 		(Point(normal.m_x, normal.m_y, normal.m_z), epsilon));
@@ -58,6 +53,7 @@ void Tracer::prepare_computations( Ray& ray, World& w) {
 	this->hit3D = hitpoint_3d;									// Set hit point, eye, and normal vectors
 	this->eye = eye;
 	this->normal = normal;
+	this->m_reflectv = Vector::reflected(ray.m_direction, this->normal); // Reflection vector at hit point.
 }
 
 bool Tracer::shadowed(World& w, Point& p) {
@@ -65,14 +61,17 @@ bool Tracer::shadowed(World& w, Point& p) {
 	real distance = Vector::magnitude(v);
 	Vector direction = Vector::normalize(v);
 	Ray r = Ray(p, direction);
-	intersect_world(w, r);
-	m_hit3D = min_hit_point(this->ix_points);
-	if (m_hit3D < 0 || m_hit3D == high_number) {
+	Tracer st = Tracer();
+	st.intersect_world(w, r);
+	st.m_hit3D = st.min_hit_point(st.ix_points);
+	if (st.m_hit3D < 0 || st.m_hit3D == high_number) {
 		return false;
 	}
 	else {
-		if (m_hit3D < distance) return true; else return false;
+		if (st.m_hit3D < distance) return true; else return false;
 	}
+	st.ix_points.clear();
+	st.ix_shape_map.clear();
 }
 
 Color Tracer::lighting(Material& m, Light& light, bool shadow) {
@@ -112,29 +111,34 @@ Color Tracer::lighting(Material& m, Light& light, bool shadow) {
 	return kodak;
 }
 
-Color Tracer::shade_hit(World& w) {
-		Color color;
+Color Tracer::shade_hit(World& w, real& remaining) {
+		Color surface;
+		Color reflected;
+		Color polaroid;
 		if (this->m_hit3D < 0 || this->m_hit3D == high_number) {
-			color = black;
-			return color;
+			surface = black;
+			return surface;
 		}
 		else {
 			std::unordered_map<real, Shape*>::const_iterator got = ix_shape_map.find(this->m_hit3D);
 			Shape* s = got->second;
 			bool shadow = shadowed(w, this->hit3D);
-			color = lighting(this->s->b_material, w.m_light_source, shadow);
-			return color;
+			surface = lighting(this->s->b_material, w.m_light_source, shadow);
+			if (this->s->b_material.m_reflective == 0) return surface;
+			reflected = reflected_color( w, remaining);
+			polaroid = Color::addColors(surface, reflected);
+			return polaroid;
 		}
 }
 
-Color Tracer::color_at(World& w, Ray& r) {
-		intersect_world(w, r);
-		prepare_computations(r, w);
+Color Tracer::color_at(World& w, Ray& r, real& remaining) {
+	this->intersect_world(w, r);
+	this->prepare_computations(r, w);
 		if ( (this->m_hit3D == high_number)) { 
 			return black; }
 		else {
 			this->ix_points.clear();				// Shadow rays use the same data structure as normal rays
-			Color color = shade_hit(w);				// so the IXs vectors must be cleared.
+			Color color = this->shade_hit(w,remaining);				// so the IXs vectors must be cleared.
 			return color;
 		}
 }
@@ -148,8 +152,9 @@ void Tracer::render(Camera& camera, World& world) {
 		int hs = camera.m_hsize;
 		for (int y = 0; y < vs; y++) {
 			for (int x = 0; x < hs; x++) {
+				real remaining = 2;
 				Ray ray = camera.ray_for_pixel(x, y);
-				Color color = this->color_at(world, ray);
+				Color color = this->color_at(world, ray, remaining);
 				this->ix_points.clear();				// if not clear the tracer array keeps adding records.
 				this->ix_shape_map.clear();
 				image.write_pixel(x, y, color);
@@ -164,3 +169,20 @@ void Tracer::render(Camera& camera, World& world) {
 		}
 		tcfile.close();
 	}
+
+Color Tracer::reflected_color( World& world, real& remaining) {
+	real rr = remaining - 1;
+	if (this->s->b_material.m_reflective == 0 || rr <= 0 || this->s->b_material.m_ambient == 1) {
+		return black;
+	}
+	Tracer rt = Tracer();
+	rt.hit3D = this->hit3D;
+	rt.m_reflectv = this->m_reflectv;
+	Ray reflect_ray(rt.hit3D, rt.m_reflectv);
+	//Ray reflect_ray(this->hit3D, this->m_reflectv);
+	Color technicolor = Color::scalarMultiplication(rt.color_at(world, reflect_ray, rr)
+		,this->s->b_material.m_reflective);
+	rt.ix_points.clear();
+	rt.ix_shape_map.clear();
+	return technicolor;
+}

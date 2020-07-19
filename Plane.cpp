@@ -20,12 +20,15 @@ void Plane::intersection(const Ray& r, std::vector<real>& hits, std::unordered_m
 }
 
 void Plane::normal_at(Point& hitpoint, Matrix& inv_tx, Vector& normal) {
-	/*	// Pending formal normal calculator.
-	Point object_point(Matrix::multiply_point(inv_tx, hitpoint));	// Computes normal vector at 3D hit point.
-	Vector object_normal(Point::subPoints(object_point, Point(0, 0, 0)));
-	Vector world_normal(Matrix::multiply_vector(Matrix::transpose(inv_tx), object_normal));
+	///*	// Pending formal normal calculator.
+	//Point object_point(Matrix::multiply_point(inv_tx, hitpoint));	// Computes normal vector at 3D hit point.
+	//Vector object_normal(Point::subPoints(object_point, Point(0, 0, 0)));
+	//Vector world_normal(Matrix::multiply_vector(Matrix::transpose(inv_tx), object_normal));
+	//world_normal.m_w = 0;
+	//normal = Vector::normalize(world_normal);
+	//*/
+	Vector object_normal = this->m_plane_normal;
+	Vector world_normal = Matrix::multiply_vector(Matrix::transpose(inv_tx), object_normal);
 	world_normal.m_w = 0;
 	normal = Vector::normalize(world_normal);
-	*/
-	normal = this->m_plane_normal;
 }

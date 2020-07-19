@@ -46,9 +46,11 @@ int main() {
 	//Tests::plane_const_normal();
 	//ests::ray_plane_ix_parallel_or_coplanar();
 	//Tests::ix_plane_above();
-	Tests::pit9();
+	//Tests::pit9();
 	//Tests::stripe_pattern();
 	//Tests::lighting_pattern();
+	//Tests::reflection();
+	Tests::reflux();
 
 	std::cout << "END TEST\n";
 	return 0;

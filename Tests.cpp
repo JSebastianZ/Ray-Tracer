@@ -1,7 +1,7 @@
 #include "Tests.h"
 
 using namespace rt;
-
+/*
 void Tests::create_tuple()
 {
 	Tuple tuple{};
@@ -170,12 +170,12 @@ void Tests::material_test() {
 	std::cout << m.m_color.m_r << ' ' << m.m_ambient << '\n';
 }
 
-/*void Tests::shape_test() {
-	Shape s;
-	std::cout << s.getID() << '\n';
-	std::cout << s.m_id << ' ' << s.m_material.m_ambient << ' ' << s.m_transform.matrix[3][3] << '\n';
-}
-*/
+//void Tests::shape_test() {
+//	Shape s;
+//	std::cout << s.getID() << '\n';
+//	std::cout << s.m_id << ' ' << s.m_material.m_ambient << ' ' << s.m_transform.matrix[3][3] << '\n';
+//}
+
 
 void Tests::sphere_test() {
 	Sphere s{Sphere()};
@@ -571,4 +571,33 @@ void Tests::lighting_pattern() {
 	t.hit3D = Point(1.1, 0, 0);
 	c2 = t.lighting(m, light, false);
 	std::cout << "c2: " << c2.m_r << ',' << c2.m_g << ',' << c2.m_b << '\n';
+}
+*/
+
+/*
+void Tests::reflection() {
+
+	Plane shape;
+	Ray r(Point(0, 1, -1), Vector(0, -0.7071678, 0.7071678));
+	Tracer t;
+	shape.intersection(r, t.ix_points, t.ix_shape_map);
+	for (int i = 0; i < t.ix_points.size(); i++) {
+		std::cout << t.ix_points[i] << '\n';
+	}
+	Light l(Point(-10, 10, -10), Color(1, 1, 1));
+	Vector reflex = Vector::reflected(r.m_direction, shape.m_plane_normal);
+	std::cout << reflex.m_x << ',' << reflex.m_y << ',' << reflex.m_z << '\n';
+}
+*/
+
+void Tests::reflux() {
+	World w = World();
+	Tracer t;
+	Camera camera = Camera(512, 512, (pi/1.5));
+	Point from = Point(-1, 1.5, -5);
+	Point to = Point(0, 1, 0);
+	Vector up = Vector(0, 1, 0);
+	camera.m_transform = Matrix::view_transform(from, to, up);
+	camera.m_inv_tx = Matrix::inverse(camera.m_transform);
+	t.render(camera, w);
 }

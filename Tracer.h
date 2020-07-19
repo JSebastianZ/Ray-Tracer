@@ -11,8 +11,6 @@
 
 namespace rt {
 
-
-
 	class Tracer {
 	public:
 
@@ -41,7 +39,10 @@ namespace rt {
 		// Intersected shape
 		Shape* s;
 
-		Color black = Color(0, 0, 0);
+		// Reflected ray at hit point.
+		Vector m_reflectv;
+
+		Color black{ 0, 0, 0 };
 
 		Tracer();
 
@@ -72,14 +73,17 @@ namespace rt {
 
 		// Returns color at the intersection point by
 		// invoking the lightning member function.
-		Color shade_hit(World& w);
+		Color shade_hit(World& w, real& remaining);
 
 		// Intersects the world with a given ray and
 		// returns the color at the intersection point.
-		Color color_at(World& w,  Ray& r);
+		Color color_at(World& w,  Ray& r, real& remaining);
 
 		// Camera renders a "world scene" into a 2D image drawn in the canvas.
 		void render(Camera& camera, World& world);
+
+		// Computes the color returned by intersecting a surface with a reflective ray.
+		Color reflected_color(World& world, real& remaining);
 	};
 
 }

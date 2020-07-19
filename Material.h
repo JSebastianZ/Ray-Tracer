@@ -50,11 +50,15 @@ namespace rt {
 		// A small value results in a broad and bigger specular highlight.
 		real m_shininess;
 
+		// The reflective attribute is 0 for completely non-reflective surfaces.
+		// It is equal to 1 for perfect mirrors.
+		real m_reflective;
+
 		// Default constructor, with color black, and all attributes = 0.
 		Material();
 
 		// Constructor of material object with specified reflection values and color.
-		Material(Color color, real ambient, real diffuse, real specular, real shininess);
+		Material(Color color, real ambient, real diffuse, real specular, real shininess, real reflective);
 
 		// Constructor with pattern defined.
 		Material(Color color, real ambient, real diffuse, real specular, real shininess, Pattern pattern);
