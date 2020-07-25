@@ -50,7 +50,8 @@ int main() {
 	//Tests::stripe_pattern();
 	//Tests::lighting_pattern();
 	//Tests::reflection();
-	Tests::reflux();
+	//Tests::reflux();
+	Tests::glass_sphere();
 
 	std::cout << "END TEST\n";
 	return 0;

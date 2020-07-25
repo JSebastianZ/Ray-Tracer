@@ -54,6 +54,12 @@ namespace rt {
 		// It is equal to 1 for perfect mirrors.
 		real m_reflective;
 
+		// Transparecy attribute. Opaque surfaces have 0 transparecy.
+		real m_transparecy;
+
+		// The index of refraction determines the degree to which light bends across a surface.
+		real m_refractive_index;
+
 		// Default constructor, with color black, and all attributes = 0.
 		Material();
 

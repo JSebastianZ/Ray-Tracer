@@ -297,3 +297,10 @@ World::World() {
 	*/
 
 }
+
+Sphere World::glass_s() {
+	Sphere s = Sphere();
+	s.b_material.m_transparecy = 1.0;
+	s.b_material.m_refractive_index = 1.5;
+	return s;
+}

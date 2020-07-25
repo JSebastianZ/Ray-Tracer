@@ -27,6 +27,8 @@ namespace rt {
 		// Default World sample
 		World();
 
+		static Sphere glass_s();
+
 	};
 }
 

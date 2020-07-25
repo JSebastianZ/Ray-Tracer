@@ -64,7 +64,8 @@ namespace rt {
 		static void lighting_pattern();
 		*/
 		//static void reflection();
-		static void reflux();
+		//static void reflux();
+		static void glass_sphere();
 
 	};
 }

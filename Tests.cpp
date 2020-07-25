@@ -589,15 +589,29 @@ void Tests::reflection() {
 	std::cout << reflex.m_x << ',' << reflex.m_y << ',' << reflex.m_z << '\n';
 }
 */
-
+/*
 void Tests::reflux() {
 	World w = World();
 	Tracer t;
-	Camera camera = Camera(512, 512, (pi/1.5));
-	Point from = Point(-1, 1.5, -5);
+	Camera camera = Camera(512, 512, (pi/2));
+	Point from = Point(5, 1.7, -10);
 	Point to = Point(0, 1, 0);
 	Vector up = Vector(0, 1, 0);
 	camera.m_transform = Matrix::view_transform(from, to, up);
 	camera.m_inv_tx = Matrix::inverse(camera.m_transform);
 	t.render(camera, w);
+}
+*/
+
+void Tests::glass_sphere() {
+	Sphere s = World::glass_s();
+	std::cout << "transform: \n";
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			std::cout << s.b_transform.matrix[i][j] << ' ';
+		}
+		std::cout << '\n';
+	}
+	std::cout << "\ntransparency: \n" << s.b_material.m_transparecy << '\n';
+	std::cout << "\nrefractive index: \n" << s.b_material.m_refractive_index << '\n';
 }
