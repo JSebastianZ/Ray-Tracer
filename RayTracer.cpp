@@ -51,7 +51,11 @@ int main() {
 	//Tests::lighting_pattern();
 	//Tests::reflection();
 	//Tests::reflux();
-	Tests::glass_sphere();
+	//Tests::glass_sphere();
+	//Tests::n1n2();
+	//Tests::refract45();
+	//Tests::tir();
+	Tests::refracted_color();
 
 	std::cout << "END TEST\n";
 	return 0;

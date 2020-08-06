@@ -11,6 +11,9 @@ void Tracer::intersect_world(const World& w,const  Ray& ray) {
 	for (int i = 0; i < w.m_objects.size(); i++) {
 		Ray r = Ray::transform(ray2, w.m_objects[i]->b_inv_tx);
 		w.m_objects[i]->intersection(r, this->ix_points, this->ix_shape_map);
+		// refraction support map in test chapter 11
+		// maps intersected object with their ID for easy retrieval.
+		this->shape_id_map.insert({ w.m_objects[i]->b_id, w.m_objects[i] });
 	}
 }
 
@@ -54,6 +57,46 @@ void Tracer::prepare_computations( Ray& ray, World& w) {
 	this->eye = eye;
 	this->normal = normal;
 	this->m_reflectv = Vector::reflected(ray.m_direction, this->normal); // Reflection vector at hit point.
+
+
+	// Refraction implementation stage chapter 11
+	for (int i = 0; i < this->ix_points.size(); i++) {
+		if (this->ix_points[0] != infinite) {					// The code below does not make sense if 
+			int verga = 0;										// the hit point is in the infinite!!!
+			std::unordered_map<real, Shape*>::const_iterator mapper = ix_shape_map.find(ix_points[i]);
+			Shape* s = mapper->second;
+			if (this->io.empty() == true) {
+				this->io.push_back(s->b_id);
+			}
+			else {
+				for (int j = 0; j < io.size(); j++) {
+					if (io[j] == s->b_id) {
+						verga = io[j];
+						this->io.erase(io.begin() + j);
+						break;
+					}
+				}
+			}
+			if (verga == s->b_id) {
+				int last_ix = this->io.back();
+				std::unordered_map<int, Shape*>::const_iterator mapita = shape_id_map.find(last_ix);
+				Shape* last_shape = mapita->second;
+				fill_rix(this->n_ix, *last_shape);
+				continue;
+			}
+			this->io.push_back(s->b_id);
+			int last_ix = this->io.back();
+			std::unordered_map<int, Shape*>::const_iterator mapita = shape_id_map.find(last_ix);
+			Shape* last_shape = mapita->second;
+			fill_rix(this->n_ix, *last_shape);
+		}
+		else continue;
+	} 
+
+	this->under_point = Point(hitpoint_3d.m_x - (normal.m_x * epsilon), // Point where refracted ray originates.
+		hitpoint_3d.m_y - (normal.m_y * epsilon),
+			hitpoint_3d.m_z - (normal.m_z * epsilon));
+
 }
 
 bool Tracer::shadowed(World& w, Point& p) {
@@ -80,6 +123,7 @@ Color Tracer::lighting(Material& m, Light& light, bool shadow) {
 	Color effective_color;
 	if (this->s->b_material.m_pattern.m_pattern_exist == true) {						// Compute color based on stripes if defined.
 		effective_color = this->s->b_material.m_pattern.stripe_at_object(this->hit3D,this->s->b_inv_tx);
+		// aqui llega el problema			std::cout << "test\n";
 	}
 	else {
 		effective_color = Color::multColors(m.m_color, light.m_intensity); 			// Combine object surface and light source colors.
@@ -92,7 +136,7 @@ Color Tracer::lighting(Material& m, Light& light, bool shadow) {
 		specular = Color(0, 0, 0);
 		//std::cout << "En SOMBRA!\n";
 	}
-	else {																				// If light and normal are in the same side...
+	else {																	// If light and normal are in the same side...
 		Color d = Color::scalarMultiplication(effective_color, (m.m_diffuse * cosine_light_normal));	// Compute diffusion contribution.		
 		diffuse = Color(d.m_r, d.m_g, d.m_b);
 		Vector lightv_n(Vector::negate(lightv)); 										// Compute the reflection of the light vector towards
@@ -123,7 +167,8 @@ Color Tracer::shade_hit(World& w, real& remaining) {
 			std::unordered_map<real, Shape*>::const_iterator got = ix_shape_map.find(this->m_hit3D);
 			Shape* s = got->second;
 			bool shadow = shadowed(w, this->hit3D);
-			surface = lighting(this->s->b_material, w.m_light_source, shadow);
+			surface = lighting(this->s->b_material, w.m_light_source, shadow);			
+			// aqui llega el problema, lighting no retorna			std::cout << "test\n";
 			if (this->s->b_material.m_reflective == 0) return surface;
 			reflected = reflected_color( w, remaining);
 			polaroid = Color::addColors(surface, reflected);
@@ -138,7 +183,11 @@ Color Tracer::color_at(World& w, Ray& r, real& remaining) {
 			return black; }
 		else {
 			this->ix_points.clear();				// Shadow rays use the same data structure as normal rays
+			this->io.clear();
+			this->snell_sin.clear();
+			this->n_ix.clear(); 
 			Color color = this->shade_hit(w,remaining);				// so the IXs vectors must be cleared.
+			// aqui llega el problema....std::cout << "first shade\n";
 			return color;
 		}
 }
@@ -179,10 +228,65 @@ Color Tracer::reflected_color( World& world, real& remaining) {
 	rt.hit3D = this->hit3D;
 	rt.m_reflectv = this->m_reflectv;
 	Ray reflect_ray(rt.hit3D, rt.m_reflectv);
-	//Ray reflect_ray(this->hit3D, this->m_reflectv);
 	Color technicolor = Color::scalarMultiplication(rt.color_at(world, reflect_ray, rr)
 		,this->s->b_material.m_reflective);
 	rt.ix_points.clear();
 	rt.ix_shape_map.clear();
 	return technicolor;
+}
+
+real Tracer::snell(const real& n1, const real& n2) {
+	this->n_ratio = 0;
+	this->cos_i = 0;
+	this->sin2_t = 0;
+	n_ratio = n1 / n2;
+	cos_i = Vector::dotProduct(this->eye, this->normal);
+	sin2_t = pow(n_ratio, 2) * (1 - pow(cos_i, 2));
+	return sin2_t;
+}
+
+
+void Tracer::fill_rix(std::vector<Refr_i>& n_ix, Shape& s) {
+	Refr_i ri;
+	if (n_ix.empty() == true) {			// if there are no intersections the 1st n1 = 1.0
+		ri.n1 = 1.0;
+		ri.n2 = s.b_material.m_refractive_index;
+		this->snell_sin.push_back(snell(ri.n1, ri.n2));
+	}
+	else {
+		ri.n1 = n_ix.back().n2;
+		ri.n2 = s.b_material.m_refractive_index;
+		this->snell_sin.push_back(snell(ri.n1, ri.n2));
+	}
+	if (this->io.size() == 1) {			// if there is one intersect object left then last n2 = 1.0
+		ri.n1 = s.b_material.m_refractive_index;
+		ri.n2 = 1.0;
+		this->snell_sin.push_back(snell(ri.n1, ri.n2));
+	}
+	n_ix.push_back(ri);
+} 
+
+Color Tracer::refracted_color(World& world, real& remaining, const int& index) {
+	real rr = remaining - 1; 
+	if (this->s->b_material.m_transparecy == 0 || rr <= 0 || this->snell_sin[index] >= 1) {
+		return black;
+	}
+	Tracer refract_tracer = Tracer(); 
+	refract_tracer.hit3D = this->hit3D;
+	refract_tracer.s = this->s;
+	refract_tracer.s->b_inv_tx = this->s->b_inv_tx;
+	real n_ratio = this->n_ix[index].n1 / this->n_ix[index].n2;
+	real cos_t = sqrt(1.0 - this->snell_sin[index]);
+	Vector direction = Vector::subVectors(
+	Vector::scalarMultiplication(this->normal, (n_ratio * (this->cos_i - cos_t))),
+	Vector::scalarMultiplication(this->eye, this->n_ratio));
+	Ray refract_ray = Ray(this->under_point, direction); 
+	Color palette = Color::scalarMultiplication(refract_tracer.color_at(world, refract_ray, rr)
+		, this->s->b_material.m_transparecy); 
+	refract_tracer.ix_points.clear();
+	//refract_tracer.ix_shape_map.clear();
+	refract_tracer.n_ix.clear();
+	refract_tracer.io.clear();
+	refract_tracer.snell_sin.clear();
+		return palette;
 }

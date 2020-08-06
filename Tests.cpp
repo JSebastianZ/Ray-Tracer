@@ -603,6 +603,7 @@ void Tests::reflux() {
 }
 */
 
+/*
 void Tests::glass_sphere() {
 	Sphere s = World::glass_s();
 	std::cout << "transform: \n";
@@ -614,4 +615,68 @@ void Tests::glass_sphere() {
 	}
 	std::cout << "\ntransparency: \n" << s.b_material.m_transparecy << '\n';
 	std::cout << "\nrefractive index: \n" << s.b_material.m_refractive_index << '\n';
+}
+*/
+
+/*
+void Tests::n1n2() {
+	World w = World();
+	Tracer t;
+	Ray r(Point(0, 0, -4), Vector(0, 0, 1));
+	t.intersect_world(w, r);
+	t.prepare_computations(r, w);
+	int size = t.ix_points.size();
+	for (int i = 0; i < t.ix_points.size(); i++) {
+	std::cout << t.ix_points[i] << '\t';
+	}
+	std::cout << "\nlos n en cada ix point son:\n";
+	std::cout << "index" << " | " << "n1" << " | " << "n2\n";
+	for (int i = 0; i < size; i++) {
+		std::cout << i << " | " << t.n_ix[i].n1 << " | " << t.n_ix[i].n2 << '\n';
+	}
+}
+*/
+
+/*
+void Tests::refract45() {
+	World w = World();
+	Tracer t;
+	Ray r(Point(0, 0, -5), Vector(0, 0, 1));
+	t.intersect_world(w, r);
+	t.prepare_computations(r, w);
+	real remaining = 2;
+	Color c = t.refracted_color(w, remaining);
+	std::cout << c.m_r << ',' << c.m_g << ',' << c.m_b << '\n';
+}
+*/
+
+/*
+void Tests::tir() {
+	World w = World();
+	Tracer t;
+	Ray r(Point(0, 0, 0.7071), Vector(0, 1, 0));
+	t.intersect_world(w, r);
+	t.prepare_computations(r, w);
+	real remaining = 5;
+	t.s = w.m_objects[1];
+	Color c = t.refracted_color(w, remaining, 2);
+	std::cout << "el numero de intersecciones es: " << t.ix_points.size() << '\n';
+	std::cout << "las intersecciones estan en: " << '\n';
+	for (int i = 0; i < t.ix_points.size(); i++) {
+		std::cout << t.ix_points[i] << '\n';
+	}
+	std::cout << "el color refractado es: \n";
+	std::cout << c.m_r << ',' << c.m_g << ',' << c.m_b << '\n';
+}
+*/
+
+void Tests::refracted_color() {
+	World w = World();
+	Tracer t;
+	Ray r(Point(0, 0, 0.1), Vector(0, 1, 0));
+	t.intersect_world(w, r);
+	t.prepare_computations(r, w);
+	real remaining = 2;
+	Color c = t.refracted_color(w, remaining, 2);
+	std::cout << c.m_r << ',' << c.m_g << ',' << c.m_b << '\n';
 }

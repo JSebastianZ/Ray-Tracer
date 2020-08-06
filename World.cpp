@@ -8,22 +8,37 @@ World::World() {
 	Color black(0, 0, 0);
 
 	// Default world
-	/*
+	///*
 	m_light_source = Light(Point(-10, 10, -10), Color(1, 1, 1));
 	Sphere* s1 = new Sphere();
 	s1->m_radius = 1;
 	s1->b_material = Material();
+	s1->b_material.m_ambient = 1.0;
+	// test chapter 11
+	s1->b_material.m_pattern.m_pattern_exist = true;
+	s1->b_material.m_pattern.pt = CHECKER;
+	s1->b_material.m_pattern.m_stripe_pattern.push_back(white);
+	s1->b_material.m_pattern.m_stripe_pattern.push_back(black);
 	s1->b_material.m_color = Color(1,0.2,1);
 	s1->b_material.m_diffuse = 0.7;
 	s1->b_material.m_specular = 0.2;
 	s1->b_material.m_shininess = 200;
 	s1->b_transform = Matrix::translation_matrix_p(Point(0, 0, 0));
+	s1->b_inv_tx = Matrix::inverse(s1->b_transform);
+	// test chapter 11
+	s1->b_material.m_transparecy = 1.0;
+	s1->b_material.m_refractive_index = 1.5;
+	s1->b_material.m_pattern.b_pattern_tx = Matrix::scaling_matrix_p(Point(2, 2, 2));
+	s1->b_material.m_pattern.b_inv_pattern_tx = Matrix::inverse(s1->b_material.m_pattern.b_pattern_tx);
 
 
 	Sphere* s2 = new Sphere();
 	s2->m_diameter = 1;
 	s2->m_radius = 0.5;
 	s2->b_material = Material();
+	// test chapter 11
+	s2->b_material.m_transparecy = 1.0;
+	s2->b_material.m_refractive_index = 1.5;
 	s2->b_material.m_ambient = 0.1;
 	s2->b_material.m_diffuse = 0.9;
 	s2->b_material.m_specular = 0.9;
@@ -31,13 +46,15 @@ World::World() {
 	s2->b_material.m_color = Color(1, 1, 1);
 	s2->b_transform = Matrix::multiplyMatrices(Matrix::translation_matrix_p(Point(0, 0, 0)),
 		Matrix::scaling_matrix_p(Point(0.5, 0.5, 0.5)));
+	s2->b_inv_tx = Matrix::inverse(s2->b_transform);
 	m_objects.push_back(s1);
 	//std::cout << s1->b_material.m_color.m_r << ',' << s1->b_material.m_color.m_g << ',' << s1->b_material.m_color.m_b << '\n';
-	//m_objects.push_back(s2);
+	m_objects.push_back(s2);
 	//std::cout << s2->b_material.m_color.m_r << ',' << s2->b_material.m_color.m_g << ',' << s2->b_material.m_color.m_b << '\n';
-	*/
+	//*/
 
-	// World for reflection
+	// World for reflection Chapter 11
+	/*
 	m_light_source = Light(Point(-10, 10, -10), Color(0.5, 0.5, 0.5));
 	Plane* p1 = new Plane();
 	Plane* p2 = new Plane();
@@ -146,6 +163,7 @@ World::World() {
 	m_objects.push_back(s4);
 	m_objects.push_back(s5);
 	m_objects.push_back(s6);
+	*/
 
 	/*	// Default world for PIT_9 test
 	m_light_source = Light(Point(0, 1.50, -1), Color(1, 1, 1));
@@ -296,6 +314,32 @@ World::World() {
 
 	*/
 
+	// World for refraction Chapter 11 test 2
+/*
+m_light_source = Light(Point(-10, 10, -10), Color(0.5, 0.5, 0.5));
+
+Sphere* a = new Sphere();
+a->b_transform = Matrix::scaling_matrix_p(Point(2, 2, 2));
+a->b_inv_tx = Matrix::inverse(a->b_transform);
+a->b_material.m_transparecy = 1.0;
+a->b_material.m_refractive_index = 1.5;
+
+Sphere* b = new Sphere();
+b->b_transform = Matrix::translation_matrix_p(Point(0, 0, -0.25));
+b->b_inv_tx = Matrix::inverse(b->b_transform);
+b->b_material.m_transparecy = 1.0;
+b->b_material.m_refractive_index = 2.0;
+
+Sphere* c = new Sphere();
+c->b_transform = Matrix::translation_matrix_p(Point(0, 0, 0.25));
+c->b_inv_tx = Matrix::inverse(c->b_transform);
+c->b_material.m_transparecy = 1.0;
+c->b_material.m_refractive_index = 2.5;
+
+m_objects.push_back(a);
+m_objects.push_back(b);
+m_objects.push_back(c);
+*/
 }
 
 Sphere World::glass_s() {

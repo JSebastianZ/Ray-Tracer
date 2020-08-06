@@ -65,7 +65,11 @@ namespace rt {
 		*/
 		//static void reflection();
 		//static void reflux();
-		static void glass_sphere();
+		//static void glass_sphere();
+		//static void n1n2();
+		//static void refract45();
+		//static void tir();
+		static void refracted_color();
 
 	};
 }

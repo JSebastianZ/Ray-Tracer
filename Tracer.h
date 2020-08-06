@@ -21,6 +21,9 @@ namespace rt {
 		// Used to keep track of the object that is intersected at an specific point.
 		std::unordered_map<real, Shape*> ix_shape_map;
 
+		// Map that bonds Shapes with their respective Shape ID.
+		std::unordered_map<int, Shape*> shape_id_map;
+
 		// Define eye vector as negative of ray direction.
 		Vector eye;
 
@@ -42,7 +45,30 @@ namespace rt {
 		// Reflected ray at hit point.
 		Vector m_reflectv;
 
+		// Stores refraction index of mediums traversed by a ray.
+		struct Refr_i {
+			real n1;
+			real n2;
+		};
+
+		// Data structure with same size as ix_points that holds refraction indexes at hitpoints.
+		std::vector<Refr_i> n_ix;
+
+		// Chapter 11 refraction support variables.
+		real n_ratio;
+		real cos_i;
+		real sin2_t;
+		Point under_point;
+
+		// Test for refraction ixs objects
+		std::vector<int> io;
+
+		// Test for snell law computation
+		std::vector<real> snell_sin;
+
 		Color black{ 0, 0, 0 };
+
+		Color white{ 1,1,1 };
 
 		Tracer();
 
@@ -84,6 +110,15 @@ namespace rt {
 
 		// Computes the color returned by intersecting a surface with a reflective ray.
 		Color reflected_color(World& world, real& remaining);
+
+		// Stores refraction indexes of traversed objects.
+		void fill_rix(std::vector<Refr_i>& n_ix, Shape& s);
+
+		// Computes Snell's Law
+		real snell(const real& n1, const real& n2);
+
+		// Computes the refracted color of an object.
+		Color refracted_color(World& world, real& remaining, const int& index);
 	};
 
 }
